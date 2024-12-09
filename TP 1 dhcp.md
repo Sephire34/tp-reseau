@@ -76,3 +76,21 @@ Avec la commande ping :**
 ``` 
 00:50:79:66:68:00  10.1.1.1 expires in 106 seconds
 ```
+
+**2. Ajouter un switch et une troisième machine**
+
+```PC3> ip 10.1.1.3```
+```
+Checking for duplicate address...
+PC3 : 10.1.1.3 255.255.255.0
+```
+
+**3. Installer un serveur DHCP**
+
+**Donner un accès Internet à la machine dhcp.tp1.efrei**
+```
+[toto@efrei-xmg4agau1 ~]$ ping google.com
+PING google.com (216.58.214.174) 56(84) bytes of data.
+64 bytes from mad01s26-in-f174.1e100.net (216.58.214.174): icmp_seq q = 1 ttl I = 63 time 37.0 ms
+64 bytes from par10s42-in-f14.1e100.net (216.58.214.174): icmp_seq=2 ttl I = 63 time=29.4 ms
+```
